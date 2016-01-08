@@ -1237,7 +1237,7 @@ static ngx_http_sla_pool_shm_t* ngx_http_sla_add_counter (ngx_http_sla_pool_t* p
     ngx_uint_t               i;
     ngx_http_sla_pool_shm_t* result;
 
-    result = pool->shm_ctx;
+    result = pool->shm_ctx + hint;
     for (i = hint; i < NGX_HTTP_SLA_MAX_COUNTERS_LEN; i++) {
         if (result->name_len == 0) {
             break;
