@@ -27,7 +27,7 @@ before_script:
 script:
   - cd nginx-${NGINX_VERSION}
   - |
-    ./configure                                      \
+    ./configure \
     --prefix=/usr/share/nginx                        \
     --conf-path=/etc/nginx/nginx.conf                \
     --http-log-path=/var/log/nginx/access.log        \
@@ -57,4 +57,4 @@ script:
     --add-module=ngx_cache_purge                     \
     --add-module=nginx-sla
   - make
-  - make install
+  - sudo make install
