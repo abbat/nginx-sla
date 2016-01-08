@@ -27,10 +27,9 @@
  * SUCH DAMAGE.
  */
 
-#include <ngx_config.h>
-#include <ngx_core.h>
-#include <ngx_http.h>
 #include <math.h>
+#include <nginx.h>
+#include <ngx_http.h>
 
 
 /**
@@ -116,8 +115,8 @@ typedef struct {
     ngx_uint_t name_len;                                      /** Длина имени апстрима                    */
     ngx_uint_t http[NGX_HTTP_SLA_MAX_HTTP_LEN];               /** Количество ответов HTTP                 */
     ngx_uint_t http_xxx[6];                                   /** Количество ответов в группах HTTP       */
-    ngx_uint_t timings[NGX_HTTP_SLA_MAX_TIMINGS_LEN];         /** Количество ответов в интервале времени  */
-    ngx_uint_t timings_agg[NGX_HTTP_SLA_MAX_TIMINGS_LEN];     /** Количество ответов до интервала времени */
+    ngx_msec_t timings[NGX_HTTP_SLA_MAX_TIMINGS_LEN];         /** Количество ответов в интервале времени  */
+    ngx_msec_t timings_agg[NGX_HTTP_SLA_MAX_TIMINGS_LEN];     /** Количество ответов до интервала времени */
     double     quantiles[NGX_HTTP_SLA_MAX_QUANTILES_LEN];     /** Значения квантилей                      */
     double     time_avg;                                      /** Среднее время ответа                    */
     double     time_avg_mov;                                  /** Скользящее среднее время ответа         */
@@ -133,7 +132,7 @@ typedef struct {
 typedef struct {
     ngx_str_t                name;         /** Имя пула                             */
     ngx_array_t              http;         /** Коды HTTP (ngx_uint_t)               */
-    ngx_array_t              timings;      /** Тайминги (ngx_uint_t)                */
+    ngx_array_t              timings;      /** Тайминги (ngx_msec_t)                */
     ngx_array_t              quantiles;    /** Квантили (ngx_uint_t)                */
     ngx_uint_t               avg_window;   /** Размер окна для скользящего среднего */
     ngx_uint_t               min_timing;   /** Время "отсечки"                      */
@@ -263,7 +262,7 @@ static ngx_int_t ngx_http_sla_set_http_status (const ngx_http_sla_pool_t* pool, 
 /**
  * Установка времени обработки запроса в счетчике
  */
-static ngx_int_t ngx_http_sla_set_http_time (const ngx_http_sla_pool_t* pool, ngx_http_sla_pool_shm_t* counter, ngx_uint_t ms);
+static ngx_int_t ngx_http_sla_set_http_time (const ngx_http_sla_pool_t* pool, ngx_http_sla_pool_shm_t* counter, ngx_msec_t ms);
 
 /**
  * Вывод статистики пула
@@ -514,7 +513,7 @@ static char* ngx_http_sla_pool (ngx_conf_t* cf, ngx_command_t* cmd, void* conf)
         return NGX_CONF_ERROR;
     }
 
-    if (ngx_array_init(&pool->timings, cf->pool, NGX_HTTP_SLA_MAX_TIMINGS_LEN, sizeof(ngx_uint_t)) != NGX_OK) {
+    if (ngx_array_init(&pool->timings, cf->pool, NGX_HTTP_SLA_MAX_TIMINGS_LEN, sizeof(ngx_msec_t)) != NGX_OK) {
         return NGX_CONF_ERROR;
     }
 
@@ -943,8 +942,8 @@ static ngx_int_t ngx_http_sla_purge_handler (ngx_http_request_t* r)
 static ngx_int_t ngx_http_sla_processor (ngx_http_request_t* r)
 {
     ngx_uint_t                 i;
-    ngx_msec_int_t             ms;
-    ngx_msec_int_t             time;
+    ngx_msec_t                 ms;
+    ngx_msec_t                 time;
     ngx_uint_t                 status;
     ngx_str_t*                 alias;
     ngx_http_sla_pool_shm_t*   counter;
@@ -977,9 +976,11 @@ static ngx_int_t ngx_http_sla_processor (ngx_http_request_t* r)
                 continue;
             }
 
-            ms = (ngx_msec_int_t)(state[i].response_sec * 1000 + state[i].response_msec);
-            ms = ngx_max(ms, 0);
-
+#if nginx_version >= 1009000
+            ms = state[i].response_time;
+#else
+            ms = (ngx_msec_t)state[i].response_sec * 1000 + state[i].response_msec;
+#endif
             time += ms;
 
             alias = ngx_http_sla_get_alias(config->aliases, state[i].peer);
@@ -1287,11 +1288,11 @@ static ngx_int_t ngx_http_sla_set_http_status (const ngx_http_sla_pool_t* pool, 
     return NGX_OK;
 }
 
-static ngx_int_t ngx_http_sla_set_http_time (const ngx_http_sla_pool_t* pool, ngx_http_sla_pool_shm_t* counter, ngx_uint_t ms)
+static ngx_int_t ngx_http_sla_set_http_time (const ngx_http_sla_pool_t* pool, ngx_http_sla_pool_shm_t* counter, ngx_msec_t ms)
 {
     ngx_uint_t        i;
     ngx_uint_t        index;
-    const ngx_uint_t* timing;
+    const ngx_msec_t* timing;
 
     /* нулевой тайминг (статика) и тайминг меньше времени отсечки не учитывается */
     if (ms == 0 || ms < pool->min_timing) {
