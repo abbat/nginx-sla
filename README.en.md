@@ -1,5 +1,7 @@
 # nginx-sla
 
+[Русский](https://github.com/abbat/nginx-sla/blob/master/README.md) | [![Build Status](https://travis-ci.org/abbat/nginx-sla.svg?branch=master)](https://travis-ci.org/abbat/nginx-sla)
+
 Module [nginx](http://nginx.org/ru/) for implementing the collection of augmented statistics based on HTTP-codes and upstreams response time for further transmission to monitoring tools such as [zabbix](http://www.zabbix.com/).
 
 Module answers the following questions:
