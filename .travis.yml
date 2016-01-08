@@ -16,43 +16,45 @@ before_install:
   - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev
 
 install:
+  - cd ..
   - wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
   - tar -xf nginx-${NGINX_VERSION}.tar.gz
 
 before_script:
-  - mkdir -p nginx-${NGINX_VERSION}/nginx-sla
-  - cp config nginx-${NGINX_VERSION}/nginx-sla
-  - cp ngx_http_sla.c nginx-${NGINX_VERSION}/nginx-sla
+  - mv nginx-sla nginx-${NGINX_VERSION}
+  - git clone https://github.com/FRiCKLE/ngx_cache_purge.git nginx-${NGINX_VERSION}/ngx_cache_purge
 
 script:
   - cd nginx-${NGINX_VERSION}
   - |
-    ./configure \
-    --prefix=/etc/nginx \
-    --conf-path=/etc/nginx/nginx.conf \
-    --with-pcre-jit \
-    --with-debug \
-    --with-file-aio \
-    --with-http_addition_module \
-    --with-http_dav_module \
-    --with-http_geoip_module \
-    --with-http_gzip_static_module \
-    --with-http_image_filter_module \
-    --with-http_realip_module \
-    --with-http_secure_link_module \
-    --with-http_stub_status_module \
-    --with-http_ssl_module \
-    --with-http_sub_module \
-    --with-http_xslt_module \
-    --with-ipv6 \
-    --error-log-path=/var/log/nginx/error.log \
+    ./configure                                      \
+    --prefix=/usr/share/nginx                        \
+    --conf-path=/etc/nginx/nginx.conf                \
+    --http-log-path=/var/log/nginx/access.log        \
+    --error-log-path=/var/log/nginx/error.log        \
+    --lock-path=/var/lock/nginx.lock                 \
+    --pid-path=/run/nginx.pid                        \
     --http-client-body-temp-path=/var/lib/nginx/body \
-    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
-    --http-log-path=/var/log/nginx/access.log \
-    --http-proxy-temp-path=/var/lib/nginx/proxy \
-    --http-scgi-temp-path=/var/lib/nginx/scgi \
-    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
-    --lock-path=/var/lock/nginx.lock \
-    --pid-path=/var/run/nginx.pid \
+    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi  \
+    --http-proxy-temp-path=/var/lib/nginx/proxy      \
+    --http-scgi-temp-path=/var/lib/nginx/scgi        \
+    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi      \
+    --with-debug                                     \
+    --with-pcre-jit                                  \
+    --with-ipv6                                      \
+    --with-http_ssl_module                           \
+    --with-http_stub_status_module                   \
+    --with-http_realip_module                        \
+    --with-http_auth_request_module                  \
+    --with-http_addition_module                      \
+    --with-http_dav_module                           \
+    --with-http_geoip_module                         \
+    --with-http_gzip_static_module                   \
+    --with-http_image_filter_module                  \
+    --with-http_sub_module                           \
+    --with-http_xslt_module                          \
+    --with-http_secure_link_module                   \
+    --add-module=ngx_cache_purge                     \
     --add-module=nginx-sla
   - make
+  - make install
