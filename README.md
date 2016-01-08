@@ -1,6 +1,6 @@
-# nginx-sla
+# nginx-sla [![Build Status](https://travis-ci.org/abbat/nginx-sla.svg?branch=master)](https://travis-ci.org/abbat/nginx-sla)
 
-[English](https://github.com/abbat/nginx-sla/blob/master/README.en.md) | [![Build Status](https://travis-ci.org/abbat/nginx-sla.svg?branch=master)](https://travis-ci.org/abbat/nginx-sla)
+[English](https://github.com/abbat/nginx-sla/blob/master/README.en.md)
 
 Модуль [nginx](http://nginx.org/ru/), реализующий сбор расширенной статистики по HTTP-кодам и временам ответов апстримов для дальнейшей передачи в средства мониторинга типа [zabbix](http://www.zabbix.com/).
 
