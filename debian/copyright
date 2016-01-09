@@ -1,0 +1,21 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: nginx-sla
+Source: http://nginx.org/en/download.html
+
+Files: debian/*
+Copyright: Anton Batenev <antonbatenev@yandex.ru>
+License: BSD-2-clause
+
+Files: *
+Copyright: 2002-2015, Igor Sysoev
+           2011-2015, Nginx, Inc.
+License: BSD-2-clause
+
+Files: nginx-cache-purge/*
+Copyright: 2009-2012, FRiCKLE <info@frickle.com>,
+           2009-2012, Piotr Sikora <piotr.sikora@frickle.com>
+License: BSD-2-clause
+
+Files: nginx-sla/*
+Copyright: 2012, Anton Batenev <antonbatenev@yandex.ru>
+           2012, Fernando Systems Ltd

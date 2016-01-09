@@ -20,6 +20,10 @@
 ./configure --add-module=/path/to/nginx-sla
 ```
 
+## Бинарные пакеты
+
+* [Debian, Ubuntu](http://software.opensuse.org/download.html?project=home:antonbatenev:nginx-sla&package=nginx-sla)
+
 ## Конфигурация
 
 ```

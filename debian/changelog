@@ -1,0 +1,5 @@
+nginx-sla (%PACKAGE_VERSION%) stable; urgency=low
+
+  * Upstream version (%PACKAGE_REVISION_SHORT%)
+
+ -- Anton Batenev <antonbatenev@yandex.ru>  %DATE%

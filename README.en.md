@@ -20,6 +20,10 @@ For assembling purposes nginx must be configured with an additional parameter:
 ./configure --add-module=/path/to/nginx-sla
 ```
 
+## Binary packages
+
+* [Debian, Ubuntu](http://software.opensuse.org/download.html?project=home:antonbatenev:nginx-sla&package=nginx-sla)
+
 ## Configuration
 
 ```

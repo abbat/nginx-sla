@@ -1,0 +1,75 @@
+#!/bin/sh
+
+#
+# Script to prepare source package for build on
+# OpenSUSE Build Service (https://build.opensuse.org)
+# See: https://build.opensuse.org/package/show/home:antonbatenev:nginx-sla
+#
+# RPM spec file and Arch PKGBUILD are welcome
+#
+
+set -e
+
+NGINX_VERSION="1.8.0"
+
+PACKAGE_DATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
+PACKAGE_VERSION_DATE=$(date "+%Y%m%d%H%M")
+
+PACKAGE_REVISION=$(git rev-parse HEAD)
+PACKAGE_REVISION_SHORT=$(expr substr "${PACKAGE_REVISION}" 1 7)
+PACKAGE_VERSION="${NGINX_VERSION}~${PACKAGE_VERSION_DATE}~${PACKAGE_REVISION_SHORT}"
+
+BUILD_DIR="build"
+NGINX_DIR="nginx-${NGINX_VERSION}"
+NGINX_ARC="${NGINX_DIR}.tar.gz"
+
+if [ ! -d "build" ]; then
+	mkdir build
+fi
+
+if [ ! -f "build/${NGINX_ARC}" ]; then
+	wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O "build/${NGINX_ARC}"
+fi
+
+if [ -d "build/${NGINX_DIR}" ]; then
+	rm -rf "build/${NGINX_DIR}"
+fi
+
+if [ -d "build/nginx-sla" ]; then
+	rm -rf "build/nginx-sla"
+fi
+
+tar -xf "build/${NGINX_ARC}" -C "build"
+
+mv "build/${NGINX_DIR}" "build/nginx-sla"
+
+#
+# ngx_cache_purge
+#
+
+git clone "https://github.com/FRiCKLE/ngx_cache_purge.git" "build/nginx-sla/ngx_cache_purge"
+rm -rf "build/nginx-sla/ngx_cache_purge/.git"
+
+#
+# nginx-sla
+#
+
+mkdir -p "build/nginx-sla/nginx-sla"
+
+cp config         "build/nginx-sla/nginx-sla"
+cp ngx_http_sla.c "build/nginx-sla/nginx-sla"
+cp README.en.md   "build/nginx-sla/nginx-sla"
+
+#
+# build source package
+#
+
+cp -r debian "build/nginx-sla"
+
+sed -i -e "s/%DATE%/${PACKAGE_DATE}/g"                             "build/nginx-sla/debian/changelog"
+sed -i -e "s/%PACKAGE_VERSION%/${PACKAGE_VERSION}/g"               "build/nginx-sla/debian/changelog"
+sed -i -e "s/%PACKAGE_REVISION_SHORT%/${PACKAGE_REVISION_SHORT}/g" "build/nginx-sla/debian/changelog"
+
+cd "build/nginx-sla"
+
+debuild -S

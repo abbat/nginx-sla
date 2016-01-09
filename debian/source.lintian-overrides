@@ -1,0 +1,3 @@
+nginx-sla: missing-license-paragraph-in-dep5-copyright
+nginx-sla: missing-field-in-dep5-copyright
+nginx-sla: native-package-with-dash-version

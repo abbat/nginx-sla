@@ -1,34 +1,14 @@
-language: c
+#!/usr/bin/make -f
+# -*- makefile -*-
 
-compiler:
-  - gcc
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
 
-branches:
-  only:
-    - master
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
 
-env:
-  - NGINX_VERSION=1.8.0
-  - NGINX_VERSION=1.9.9
-
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev
-
-install:
-  - cd ..
-  - wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
-  - tar -xf nginx-${NGINX_VERSION}.tar.gz
-
-before_script:
-  - mv nginx-sla nginx-${NGINX_VERSION}
-  - git clone https://github.com/FRiCKLE/ngx_cache_purge.git nginx-${NGINX_VERSION}/ngx_cache_purge
-
-script:
-  - cd nginx-${NGINX_VERSION}
-  - |
-    ./configure \
-    --prefix=/usr                                    \
+CONFIGURE_OPTS = \
+    --prefix=/usr/share/nginx                        \
     --conf-path=/etc/nginx/nginx.conf                \
     --http-log-path=/var/log/nginx/access.log        \
     --error-log-path=/var/log/nginx/error.log        \
@@ -56,5 +36,12 @@ script:
     --with-http_secure_link_module                   \
     --add-module=ngx_cache_purge                     \
     --add-module=nginx-sla
-  - make
-  - sudo make install
+
+override_dh_auto_configure:
+	./configure $(CONFIGURE_OPTS)
+
+override_dh_auto_install:
+	/bin/true
+
+%:
+	dh $@ --parallel

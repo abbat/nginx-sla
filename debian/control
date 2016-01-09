@@ -1,0 +1,29 @@
+Source: nginx-sla
+Section: httpd
+Priority: optional
+Maintainer: Anton Batenev <antonbatenev@yandex.ru>
+Build-Depends: debhelper (>= 8.0.0), dpkg-dev (>= 1.16.1),
+ autotools-dev,
+ libexpat-dev,
+ libjpeg-dev,
+ libgd2-noxpm-dev,
+ libgeoip-dev,
+ liblua5.1-dev,
+ libmhash-dev,
+ libpam0g-dev,
+ libpcre3-dev,
+ libperl-dev,
+ libssl-dev,
+ libxslt1-dev,
+ zlib1g-dev
+Standards-Version: 3.9.4
+Homepage: http://nginx.net
+
+Package: nginx-sla
+Depends: nginx-common, ${misc:Depends}, ${shlibs:Depends}
+Architecture: any
+Conflicts: nginx-light, nginx-full, nginx-extras, nginx-golden
+Description: small, powerful, scalable web/proxy server
+ Nginx ("engine X") is a high-performance web and reverse proxy server
+ created by Igor Sysoev. It can be used both as a standalone web server
+ and as a proxy to reduce the load on back-end HTTP or mail servers.
