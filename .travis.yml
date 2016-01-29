@@ -9,7 +9,7 @@ branches:
 
 env:
   - NGINX_VERSION=1.8.1
-  - NGINX_VERSION=1.9.9
+  - NGINX_VERSION=1.9.10
 
 before_install:
   - sudo apt-get update -qq
