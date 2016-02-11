@@ -9,8 +9,8 @@ branches:
 
 env:
   - NGINX_VERSION=1.8.1
-  - NGINX_VERSION=1.9.11 NGINX_ADD_MODULE=--add-module
-  - NGINX_VERSION=1.9.11 NGINX_ADD_MODULE=--add-dynamic-module
+  - NGINX_VERSION=1.9.11
+  - NGINX_VERSION=1.9.11 NGINX_DYNAMIC=YES
 
 before_install:
   - sudo apt-get update -qq
@@ -27,6 +27,7 @@ before_script:
 
 script:
   - cd nginx-${NGINX_VERSION}
+  - test -z "${NGINX_DYNAMIC}" && NGINX_ADD_MODULE=--add-module || NGINX_ADD_MODULE=--add-dynamic-module
   - |
     ./configure \
     --prefix=/usr                                    \
