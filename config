@@ -1,4 +1,12 @@
 ngx_addon_name=ngx_http_sla
-HTTP_MODULES="$HTTP_MODULES ngx_http_sla_module"
-NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_sla.c"
-CORE_LIBS="$CORE_LIBS -lm"
+
+if [ -n "$ngx_module_link" ]; then
+	ngx_module_type=HTTP
+	ngx_module_name=ngx_http_sla
+	ngx_module_srcs="$ngx_addon_dir/ngx_http_sla.c"
+	. auto/module
+else
+	HTTP_MODULES="$HTTP_MODULES ngx_http_sla_module"
+	NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/ngx_http_sla.c"
+	CORE_LIBS="$CORE_LIBS -lm"
+fi

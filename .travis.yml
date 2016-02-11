@@ -9,7 +9,8 @@ branches:
 
 env:
   - NGINX_VERSION=1.8.1
-  - NGINX_VERSION=1.9.10
+  - NGINX_VERSION=1.9.11 NGINX_ADD_MODULE=--add-module
+  - NGINX_VERSION=1.9.11 NGINX_ADD_MODULE=--add-dynamic-module
 
 before_install:
   - sudo apt-get update -qq
@@ -54,7 +55,7 @@ script:
     --with-http_sub_module                           \
     --with-http_xslt_module                          \
     --with-http_secure_link_module                   \
-    --add-module=ngx_cache_purge                     \
-    --add-module=nginx-sla
+    ${NGINX_ADD_MODULE}=ngx_cache_purge              \
+    ${NGINX_ADD_MODULE}=nginx-sla
   - make
   - sudo make install
