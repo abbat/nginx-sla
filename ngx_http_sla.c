@@ -106,6 +106,19 @@
     #define NGX_HTTP_SLA_QUANTILE_W 0.01
 #endif
 
+/**
+ * Имя переменной в GET-запросе для задания фильтра
+ */
+#ifndef NGX_HTTP_SLA_FILTER
+    #define NGX_HTTP_SLA_FILTER "arg_filter"
+#endif
+
+/**
+ * Имя переменной в GET-запросе для задания ключа
+ */
+#ifndef NGX_HTTP_SLA_KEY
+    #define NGX_HTTP_SLA_KEY "arg_key"
+#endif
 
 /**
  * Данные счетчиков в shm
@@ -267,12 +280,12 @@ static ngx_int_t ngx_http_sla_set_http_time (const ngx_http_sla_pool_t* pool, ng
 /**
  * Вывод статистики пула
  */
-static void ngx_http_sla_print_pool (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool);
+static void ngx_http_sla_print_pool (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool, const ngx_str_t* filter);
 
 /**
  * Вывод статистики счетчика
  */
-static void ngx_http_sla_print_counter (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool, const ngx_http_sla_pool_shm_t* counter);
+static void ngx_http_sla_print_counter (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool, const ngx_http_sla_pool_shm_t* counter, const ngx_str_t* filter);
 
 /**
  * Компаратор ngx_uint_t для сортировки массива
@@ -289,6 +302,15 @@ static void ngx_http_sla_init_quantiles (const ngx_http_sla_pool_t* pool, ngx_ht
  */
 static void ngx_http_sla_update_quantiles (const ngx_http_sla_pool_t* pool, ngx_http_sla_pool_shm_t* counter);
 
+/**
+ * Получение параметра из GET-запроса (http://qiita.com/hotakasaito/items/1fd167b063e8a12c6f03)
+ */
+static ngx_str_t* ngx_http_sla_get_arg(ngx_http_request_t* r, u_char* name);
+
+/**
+ * Обёртка над ngx_sprintf() с проверкой совпадения строки
+ */
+static u_char* ngx_cdecl ngx_http_sla_sprintf(u_char* buf, const ngx_str_t* filter, const char* fmt, ...);
 
 /**
  * Список команд
@@ -776,6 +798,9 @@ static ngx_int_t ngx_http_sla_status_handler (ngx_http_request_t* r)
     ngx_http_sla_pool_t*      pool;
     ngx_http_sla_main_conf_t* config;
 
+    ngx_str_t*                filter;
+    u_char*                   filter_data;
+
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "sla handler");
 
     if (r->method != NGX_HTTP_GET && r->method != NGX_HTTP_HEAD) {
@@ -800,6 +825,18 @@ static ngx_int_t ngx_http_sla_status_handler (ngx_http_request_t* r)
     }
 
     config = ngx_http_get_module_main_conf(r, ngx_http_sla_module);
+
+    ngx_str_t* arg_key = ngx_http_sla_get_arg(r, (u_char*)NGX_HTTP_SLA_KEY);
+    ngx_str_t* arg_flt = ngx_http_sla_get_arg(r, (u_char*)NGX_HTTP_SLA_FILTER);
+
+    filter = arg_flt;
+
+    if (arg_key->len > 0) {
+        filter_data = ngx_pcalloc(r->pool, arg_key->len + 4);
+        ngx_sprintf(filter_data, "%s = ", arg_key->data);
+        filter->len = arg_key->len + 3;
+        filter->data = filter_data;
+    }
 
 #ifndef NGX_HTTP_SLA_AIRBUG
     #define NGX_HTTP_SLA_AIRBUG 1024
@@ -832,13 +869,32 @@ static ngx_int_t ngx_http_sla_status_handler (ngx_http_request_t* r)
             ngx_shmtx_lock(&pool->shm_pool->mutex);
 
             if (pool->generation == pool->shm_ctx->generation) {
-                ngx_http_sla_print_pool(buf, pool);
+                if (filter->len > 0) {
+                    size = pool->name.len < filter->len ? pool->name.len : filter->len;
+                    if (ngx_strncmp(pool->name.data, filter->data, size) == 0) {
+                        ngx_http_sla_print_pool(buf, pool, filter);
+                    }
+                } else {
+                    ngx_http_sla_print_pool(buf, pool, filter);
+                }
             }
 
             ngx_shmtx_unlock(&pool->shm_pool->mutex);
         }
 
         pool++;
+    }
+
+    /* был задан key и в буфере есть результат */
+    if (arg_key->len > 0 && (size_t)(buf->last - buf->pos) > filter->len) {
+        /* отдаём только значение */
+        size = buf->last - buf->pos - filter->len - 1;
+        buf->last = ngx_snprintf(buf->pos, size, "%s", buf->pos + filter->len);
+    }
+
+    /* если результат пуст, отдаём 404 */
+    if (buf->last - buf->pos == 0) {
+        return NGX_HTTP_NOT_FOUND;
     }
 
     /* отправка результата */
@@ -1340,20 +1396,31 @@ static ngx_int_t ngx_http_sla_set_http_time (const ngx_http_sla_pool_t* pool, ng
     return NGX_OK;
 }
 
-static void ngx_http_sla_print_pool (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool)
+static void ngx_http_sla_print_pool (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool, const ngx_str_t* filter)
 {
     ngx_uint_t i;
+    u_char*    fcn;
+    size_t     fcl;
 
     for (i = 0; i < NGX_HTTP_SLA_MAX_COUNTERS_LEN; i++) {
         if (pool->shm_ctx[i].name_len == 0) {
             break;
         }
 
-        ngx_http_sla_print_counter(buf, pool, &pool->shm_ctx[i]);
+        if (filter->len > pool->name.len + 1) {
+            fcn = filter->data + pool->name.len + 1;
+            fcl = pool->shm_ctx[i].name_len < ngx_strlen(fcn) ? pool->shm_ctx[i].name_len : ngx_strlen(fcn);
+            if (ngx_strncmp(pool->shm_ctx[i].name, fcn, fcl) == 0)
+            {
+                ngx_http_sla_print_counter(buf, pool, &pool->shm_ctx[i], filter);
+            }
+        } else {
+            ngx_http_sla_print_counter(buf, pool, &pool->shm_ctx[i], filter);
+        }
     }
 }
 
-static void ngx_http_sla_print_counter (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool, const ngx_http_sla_pool_shm_t* counter)
+static void ngx_http_sla_print_counter (ngx_buf_t* buf, const ngx_http_sla_pool_t* pool, const ngx_http_sla_pool_shm_t* counter, const ngx_str_t* filter)
 {
     ngx_uint_t        i;
     ngx_uint_t        http_count;
@@ -1371,37 +1438,37 @@ static void ngx_http_sla_print_counter (ngx_buf_t* buf, const ngx_http_sla_pool_
     quantile       = pool->quantiles.elts;
 
     /* коды http */
-    buf->last = ngx_sprintf(buf->last, "%V.%s.http = %uA\n", &pool->name, counter->name, http_count);
+    buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.http = %uA\n", &pool->name, counter->name, http_count);
 
     for (i = 0; i < pool->http.nelts - 1; i++) {
-        buf->last = ngx_sprintf(buf->last, "%V.%s.http_%uA = %uA\n", &pool->name, counter->name, http[i], counter->http[i]);
+        buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.http_%uA = %uA\n", &pool->name, counter->name, http[i], counter->http[i]);
     }
 
     /* группы кодов http */
-    buf->last = ngx_sprintf(buf->last, "%V.%s.http_xxx = %uA\n", &pool->name, counter->name, http_xxx_count);
+    buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.http_xxx = %uA\n", &pool->name, counter->name, http_xxx_count);
 
     for (i = 0; i < 5; i++) {
-        buf->last = ngx_sprintf(buf->last, "%V.%s.http_%uAxx = %uA\n", &pool->name, counter->name,  i + 1, counter->http_xxx[i]);
+        buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.http_%uAxx = %uA\n", &pool->name, counter->name,  i + 1, counter->http_xxx[i]);
     }
 
     /* среднее */
-    buf->last = ngx_sprintf(buf->last, "%V.%s.time.avg = %uA\n", &pool->name, counter->name, (ngx_uint_t)counter->time_avg);
-    buf->last = ngx_sprintf(buf->last, "%V.%s.time.avg.mov = %uA\n", &pool->name, counter->name, (ngx_uint_t)counter->time_avg_mov);
+    buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.time.avg = %uA\n", &pool->name, counter->name, (ngx_uint_t)counter->time_avg);
+    buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.time.avg.mov = %uA\n", &pool->name, counter->name, (ngx_uint_t)counter->time_avg_mov);
 
     /* тайминги */
     for (i = 0; i < pool->timings.nelts; i++) {
         if (timing[i] != (ngx_uint_t)-1) {
-            buf->last = ngx_sprintf(buf->last, "%V.%s.%uA = %uA\n", &pool->name, counter->name, timing[i], counter->timings[i]);
-            buf->last = ngx_sprintf(buf->last, "%V.%s.%uA.agg = %uA\n", &pool->name, counter->name, timing[i], counter->timings_agg[i]);
+            buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.%uA = %uA\n", &pool->name, counter->name, timing[i], counter->timings[i]);
+            buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.%uA.agg = %uA\n", &pool->name, counter->name, timing[i], counter->timings_agg[i]);
         } else {
-            buf->last = ngx_sprintf(buf->last, "%V.%s.inf = %uA\n", &pool->name, counter->name, counter->timings[i]);
-            buf->last = ngx_sprintf(buf->last, "%V.%s.inf.agg = %uA\n", &pool->name, counter->name, timings_count);
+            buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.inf = %uA\n", &pool->name, counter->name, counter->timings[i]);
+            buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.inf.agg = %uA\n", &pool->name, counter->name, timings_count);
         }
     }
 
     /* процентили */
     for (i = 0; i < pool->quantiles.nelts; i++) {
-        buf->last = ngx_sprintf(buf->last, "%V.%s.%uA%% = %uA\n", &pool->name, counter->name, quantile[i], (ngx_uint_t)counter->quantiles[i]);
+        buf->last = ngx_http_sla_sprintf(buf->last, filter, "%V.%s.%uA%% = %uA\n", &pool->name, counter->name, quantile[i], (ngx_uint_t)counter->quantiles[i]);
     }
 }
 
@@ -1516,4 +1583,49 @@ static void ngx_http_sla_update_quantiles (const ngx_http_sla_pool_t* pool, ngx_
 
     /* 3.2. Take c to the next M observations */
     counter->quantiles_c = r * ngx_http_sla_quantile_cc;
+}
+
+static ngx_str_t* ngx_http_sla_get_arg(ngx_http_request_t* r, u_char* name) {
+    ngx_http_variable_value_t* val;
+    ngx_str_t                  key = {ngx_strlen(name), (u_char*)name};
+    u_char*                    data;
+    ngx_str_t*                 str;
+
+    str = ngx_pcalloc(r->pool, sizeof(ngx_str_t));
+
+    val = ngx_http_get_variable(r, &key, ngx_hash_key(key.data, key.len));
+    if (val == NULL || val->not_found) {
+        str->len = 0;
+        str->data = (u_char*)"";
+        return str;
+    }
+
+    data = ngx_pcalloc(r->pool, (val->len + 1) * sizeof(u_char));
+    ngx_cpystrn(data, val->data, val->len + 1);
+
+    str->data = data;
+    str->len = val->len;
+
+    ngx_str_null(&key);
+    val->data = NULL;
+
+    return str;
+}
+
+static u_char* ngx_cdecl ngx_http_sla_sprintf(u_char *buf, const ngx_str_t* filter, const char *fmt, ...)
+{
+    u_char   *p;
+    va_list   args;
+
+    va_start(args, fmt);
+    p = ngx_vslprintf(buf, (void *) -1, fmt, args);
+    va_end(args);
+
+    if (filter->len > 0) {
+        if (ngx_strlen(buf) < filter->len || ngx_strncmp(filter->data, buf, filter->len) != 0) {
+            return buf;
+        }
+    }
+
+    return p;
 }
