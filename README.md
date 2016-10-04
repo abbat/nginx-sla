@@ -176,7 +176,6 @@ main.all.http_200 = 914
 main.all.http_xxx = 2048
 main.all.http_2xx = 914
 ...
-
 ```
 
 * KEY - Выводит значение ключа с именем KEY.
@@ -186,7 +185,6 @@ GET /sla_status?key=main.all.http_200
 ```
 ```
 914
-
 ```
 
 ## Используемые алгоритмы
