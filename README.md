@@ -208,7 +208,7 @@ GET /sla_status?key=main.all.http_200
 {"data":[{"{#POOL}":"main","{#BACKEND}":"all"},{"{#POOL}":"main","{#BACKEND}":"backendname"}]}
 ```
 
-* Получние значения ключа
+* Получение значения ключа
 ```
 ./nginx-sla.py main.all.http_200
 ```
