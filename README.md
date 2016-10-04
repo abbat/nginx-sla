@@ -162,6 +162,31 @@ main.<upstream>.http_200 = 270
   * `mov` - скользящее (среднее);
   * `agg` - аггрегированная статистика по всем интервалам до текущего. Так, например, в 500.agg попадают все запросы, которые выполнились от 0 и до 500 ms;
 
+## Параметры запроса
+
+* FILTER - Ограничивает отображаемую статистику ключами, начало имён которых совпдает с FILTER.
+
+```
+GET /sla_status?filter=main.all.http
+```
+```
+main.all.http = 1024
+main.all.http_200 = 914
+...
+main.all.http_xxx = 2048
+main.all.http_2xx = 914
+...
+```
+
+* KEY - Выводит значение ключа с именем KEY.
+
+```
+GET /sla_status?key=main.all.http_200
+```
+```
+914
+```
+
 ## Используемые алгоритмы
 
 Для вычисления процентилей используется алгоритм EWSA ("Exponentially Weighted Stochastic Approximation") - подробности см. "[Incremental Quantile Estimation for Massive Tracking](http://stat.bell-labs.com/cm/ms/departments/sia/doc/KDD2000.pdf)", Fei Chen, Diane Lambert, и Jose C. Pinheiro (2000).
@@ -172,3 +197,21 @@ main.<upstream>.http_200 = 270
 * `NGX_HTTP_SLA_QUANTILE_W` - весовой коэффициент обновления вычисляемых квантилей (по умолчанию 0.01).
 
 Перед изменением данных параметров имеет смысл внимательно ознакомиться с описанием алгоритма.
+
+## Скрипт для Zabbix-agent
+
+* Получение списка пулов и бэкендов, имеющих sla_alias, в формате Zabbix LLD.
+```
+./nginx-sla.py discovery
+```
+```
+{"data":[{"{#POOL}":"main","{#BACKEND}":"all"},{"{#POOL}":"main","{#BACKEND}":"backendname"}]}
+```
+
+* Получение значения ключа
+```
+./nginx-sla.py main.all.http_200
+```
+```
+914
+```

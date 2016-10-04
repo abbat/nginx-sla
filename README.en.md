@@ -162,6 +162,31 @@ main.<upstream>.http_200 = 270
   * `mov` - moving (average);
   * `agg` - aggregated statistics for all intervals up to the current. So, for example, 500.agg incudes all the queries that were executed between 0 and 500 ms;
 
+## Query parameters
+
+* FILTER - Limits the returned statistics to keys, which names beginning with FILTER.
+
+```
+GET /sla_status?filter=main.all.http
+```
+```
+main.all.http = 1024
+main.all.http_200 = 914
+...
+main.all.http_xxx = 2048
+main.all.http_2xx = 914
+...
+```
+
+* KEY - Returns the value of given key.
+
+```
+GET /sla_status?key=main.all.http_200
+```
+```
+914
+```
+
 ## Algorithms used
 
 EWSA ("Exponentially Weighted Stochastic Approximation") algorithm is used for percentile calculation - for details see "[Incremental Quantile Estimation for Massive Tracking](http://stat.bell-labs.com/cm/ms/departments/sia/doc/KDD2000.pdf)", Fei Chen, Diane Lambert, и Jose C. Pinheiro (2000).
@@ -172,3 +197,21 @@ Algorithm parameters can be altered at compiling phase by specifying relevant pr
 * `NGX_HTTP_SLA_QUANTILE_W` - weighting coefficient of computed fractiles update (0.01 by default).
 
 It makes sense to carefully read algorithm's description before changing these parameters.
+
+## Zabbix-agent script
+
+* Getting a list of pools and backend with sla_alias, in Zabbix LLD format.
+```
+./nginx-sla.py discovery
+```
+```
+{"data":[{"{#POOL}":"main","{#BACKEND}":"all"},{"{#POOL}":"main","{#BACKEND}":"backendname"}]}
+```
+
+* Getting key value
+```
+./nginx-sla.py main.all.http_200
+```
+```
+914
+```
