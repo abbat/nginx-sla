@@ -8,8 +8,8 @@ branches:
     - master
 
 env:
-  - NGINX_VERSION=1.10.3
-  - NGINX_VERSION=1.10.3 NGINX_DYNAMIC=YES
+  - NGINX_VERSION=1.12.0
+  - NGINX_VERSION=1.12.0 NGINX_DYNAMIC=YES
 
 before_install:
   - sudo apt-get update -qq
