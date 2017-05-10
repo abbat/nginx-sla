@@ -13,7 +13,7 @@ env:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev gcc-mozilla wget tar
+  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev gcc-mozilla wget tar sed
 
 install:
   - cd ..
@@ -26,6 +26,7 @@ before_script:
   - git clone -b latest-beta https://github.com/pagespeed/ngx_pagespeed.git nginx-${NGINX_VERSION}/ngx_pagespeed
   - PSOL_URL=$(nginx-${NGINX_VERSION}/ngx_pagespeed/scripts/format_binary_url.sh nginx-${NGINX_VERSION}/ngx_pagespeed/PSOL_BINARY_URL)
   - wget -O - "${PSOL_URL}" | tar -xzf - -C nginx-${NGINX_VERSION}/ngx_pagespeed
+  - sed -i -e 's|buildtype=Debug|buildtype=Release|g' nginx-${NGINX_VERSION}/ngx_pagespeed/config
 
 script:
   - cd nginx-${NGINX_VERSION}
