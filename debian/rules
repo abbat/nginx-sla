@@ -7,6 +7,14 @@
 DPKG_EXPORT_BUILDFLAGS = 1
 include /usr/share/dpkg/buildflags.mk
 
+DISTRONAME = $(shell /usr/bin/lsb_release --id --short)
+CODENAME   = $(shell /usr/bin/lsb_release --codename --short)
+ARCH       = $(shell uname -m | sed -e 's|x86_64|x64|g' | sed -e 's|i[0-9]86|ia32|g')
+
+ifneq (,$(filter wheezy precise, $(CODENAME)))
+    PAGE_SPEED_NGX_EXTRA_FLAGS=--with-cc=/usr/lib/gcc-mozilla/bin/gcc --with-ld-opt=-static-libstdc++
+endif
+
 CONFIGURE_OPTS = \
     --prefix=/usr/share/nginx                        \
     --conf-path=/etc/nginx/nginx.conf                \
@@ -35,9 +43,13 @@ CONFIGURE_OPTS = \
     --with-http_xslt_module                          \
     --with-http_secure_link_module                   \
     --add-module=ngx_cache_purge                     \
-    --add-module=nginx-sla
+    --add-module=ngx_pagespeed                       \
+    --add-module=nginx-sla                           \
+    $(PAGE_SPEED_NGX_EXTRA_FLAGS)
 
 override_dh_auto_configure:
+	ln -sf $(shell pwd)/ngx_pagespeed/psol_$(ARCH) $(shell pwd)/ngx_pagespeed/psol
+	ln -sf $(shell pwd)/ngx_pagespeed/psol/lib/Release/linux/$(ARCH)/pagespeed_automatic $(shell pwd)/ngx_pagespeed/psol/lib/Release/linux/$(ARCH)/pagespeed_automatic.a
 	./configure $(CONFIGURE_OPTS)
 
 override_dh_auto_install:

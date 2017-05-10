@@ -16,6 +16,11 @@ Copyright: 2009-2012, FRiCKLE <info@frickle.com>,
            2009-2012, Piotr Sikora <piotr.sikora@frickle.com>
 License: BSD-2-clause
 
+Files: ngx_pagespeed/*
+Copyright: 2010 Google Inc
+License: Apache-2.0
+
 Files: nginx-sla/*
 Copyright: 2012, Anton Batenev <antonbatenev@yandex.ru>
            2012, Fernando Systems Ltd
+License: BSD-2-clause

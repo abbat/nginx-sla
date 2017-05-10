@@ -51,6 +51,25 @@ git clone "https://github.com/FRiCKLE/ngx_cache_purge.git" "build/nginx-sla/ngx_
 rm -rf "build/nginx-sla/ngx_cache_purge/.git"
 
 #
+# ngx_pagespeed
+#
+
+git clone -b latest-beta "https://github.com/pagespeed/ngx_pagespeed.git" "build/nginx-sla/ngx_pagespeed"
+rm -rf "build/nginx-sla/ngx_pagespeed/.git"
+
+PSOL_URL=$(cat build/nginx-sla/ngx_pagespeed/PSOL_BINARY_URL)
+
+for ARCH in x64 ia32
+do
+	PSOL_URL_ARCH=$(echo "${PSOL_URL}" | sed "s|\$BIT_SIZE_NAME|${ARCH}|g")
+	wget -O - "${PSOL_URL_ARCH}" | tar -xzf - -C "build/nginx-sla/ngx_pagespeed"
+	mv -f "build/nginx-sla/ngx_pagespeed/psol" "build/nginx-sla/ngx_pagespeed/psol_${ARCH}"
+	mv -f "build/nginx-sla/ngx_pagespeed/psol_${ARCH}/lib/Release/linux/${ARCH}/pagespeed_automatic.a" "build/nginx-sla/ngx_pagespeed/psol_${ARCH}/lib/Release/linux/${ARCH}/pagespeed_automatic"
+done
+
+sed -i -e "s|buildtype=Debug|buildtype=Release|g" "build/nginx-sla/ngx_pagespeed/config"
+
+#
 # nginx-sla
 #
 

@@ -19,7 +19,7 @@ set -e
 
 case "$1" in
 	configure)
-		invoke-rc.d nginx reload
+		invoke-rc.d nginx reload || /bin/true
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
