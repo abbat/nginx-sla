@@ -13,7 +13,7 @@ env:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev
+  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev gcc-mozilla wget tar
 
 install:
   - cd ..
@@ -23,10 +23,14 @@ install:
 before_script:
   - mv nginx-sla nginx-${NGINX_VERSION}
   - git clone https://github.com/FRiCKLE/ngx_cache_purge.git nginx-${NGINX_VERSION}/ngx_cache_purge
+  - git clone -b latest-beta https://github.com/pagespeed/ngx_pagespeed.git nginx-${NGINX_VERSION}/ngx_pagespeed
+  - PSOL_URL=$(nginx-${NGINX_VERSION}/ngx_pagespeed/scripts/format_binary_url.sh nginx-${NGINX_VERSION}/ngx_pagespeed/PSOL_BINARY_URL)
+  - wget -O - "${PSOL_URL}" | tar -xzf - -C nginx-${NGINX_VERSION}/ngx_pagespeed
 
 script:
   - cd nginx-${NGINX_VERSION}
   - test -z "${NGINX_DYNAMIC}" && NGINX_ADD_MODULE=--add-module || NGINX_ADD_MODULE=--add-dynamic-module
+  - PAGE_SPEED_NGX_EXTRA_FLAGS="--with-cc=/usr/lib/gcc-mozilla/bin/gcc --with-ld-opt=-static-libstdc++"
   - |
     ./configure \
     --prefix=/usr                                    \
@@ -56,6 +60,8 @@ script:
     --with-http_xslt_module                          \
     --with-http_secure_link_module                   \
     ${NGINX_ADD_MODULE}=ngx_cache_purge              \
-    ${NGINX_ADD_MODULE}=nginx-sla
+    ${NGINX_ADD_MODULE}=ngx_pagespeed                \
+    ${NGINX_ADD_MODULE}=nginx-sla                    \
+    ${PAGE_SPEED_NGX_EXTRA_FLAGS}
   - make
   - sudo make install
