@@ -3,7 +3,6 @@ Section: httpd
 Priority: optional
 Maintainer: Anton Batenev <antonbatenev@yandex.ru>
 Build-Depends: debhelper (>= 8.0.0), dpkg-dev (>= 1.16.1), lsb-release,
- gcc (>= 4:4.8.0) | gcc-mozilla,
  autotools-dev,
  libexpat-dev,
  libjpeg-dev,
