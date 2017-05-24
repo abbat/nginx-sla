@@ -10,7 +10,8 @@
 
 set -e
 
-NGINX_VERSION="1.12.0"
+NGINX_VERSION="1.13.0"
+OPENSSL_VERSION="1.1.0e"
 
 PACKAGE_DATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
 PACKAGE_VERSION_DATE=$(date "+%Y%m%d%H%M")
@@ -20,15 +21,22 @@ PACKAGE_REVISION_SHORT=$(expr substr "${PACKAGE_REVISION}" 1 7)
 PACKAGE_VERSION="${NGINX_VERSION}~${PACKAGE_VERSION_DATE}~${PACKAGE_REVISION_SHORT}"
 
 BUILD_DIR="build"
+
 NGINX_DIR="nginx-${NGINX_VERSION}"
 NGINX_ARC="${NGINX_DIR}.tar.gz"
+
+OPENSSL_ARC="openssl-${OPENSSL_VERSION}.tar.gz"
 
 if [ ! -d "build" ]; then
 	mkdir build
 fi
 
 if [ ! -f "build/${NGINX_ARC}" ]; then
-	wget "http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" -O "build/${NGINX_ARC}"
+	wget "http://nginx.org/download/${NGINX_ARC}" -O "build/${NGINX_ARC}"
+fi
+
+if [ ! -f "build/${OPENSSL_ARC}" ]; then
+	wget "https://www.openssl.org/source/${OPENSSL_ARC}" -O "build/${OPENSSL_ARC}"
 fi
 
 if [ -d "build/${NGINX_DIR}" ]; then
@@ -40,8 +48,14 @@ if [ -d "build/nginx-sla" ]; then
 fi
 
 tar -xf "build/${NGINX_ARC}" -C "build"
-
 mv "build/${NGINX_DIR}" "build/nginx-sla"
+
+#
+# OpenSSL
+#
+
+tar -xf "build/${OPENSSL_ARC}" -C "build/nginx-sla"
+mv "build/nginx-sla/openssl-${OPENSSL_VERSION}" "build/nginx-sla/openssl"
 
 #
 # ngx_cache_purge

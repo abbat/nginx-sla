@@ -1,1 +1,2 @@
-objs/nginx  /usr/sbin
+objs/nginx		/usr/sbin
+objs/nginx-openssl	/usr/sbin
