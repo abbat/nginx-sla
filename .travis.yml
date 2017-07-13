@@ -9,10 +9,10 @@ branches:
 
 env:
   global:
-    - OPENSSL_VERSION=1.1.0e
+    - OPENSSL_VERSION=1.1.0f
   matrix:
-    - NGINX_VERSION=1.13.0
-    - NGINX_VERSION=1.13.0 NGINX_DYNAMIC=YES
+    - NGINX_VERSION=1.13.3
+    - NGINX_VERSION=1.13.3 NGINX_DYNAMIC=YES
 
 before_install:
   - sudo apt-get update -qq
