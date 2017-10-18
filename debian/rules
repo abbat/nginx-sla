@@ -59,6 +59,7 @@ CONFIGURE_OPTS = \
 override_dh_auto_configure:
 	ln -sf $(shell pwd)/ngx_pagespeed/psol_$(ARCH) $(shell pwd)/ngx_pagespeed/psol
 	ln -sf $(shell pwd)/ngx_pagespeed/psol/lib/Release/linux/$(ARCH)/pagespeed_automatic $(shell pwd)/ngx_pagespeed/psol/lib/Release/linux/$(ARCH)/pagespeed_automatic.a
+	patch -p0 < debian/dynamic_tls_records.patch
 	./configure $(CONFIGURE_OPTS)
 
 override_dh_auto_install:
