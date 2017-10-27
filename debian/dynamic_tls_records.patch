@@ -1,6 +1,6 @@
 --- src/event/ngx_event_openssl.c
 +++ src/event/ngx_event_openssl.c
-@@ -1131,6 +1131,7 @@
+@@ -1174,6 +1174,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
  
      sc->buffer = ((flags & NGX_SSL_BUFFER) != 0);
      sc->buffer_size = ssl->buffer_size;
@@ -8,7 +8,31 @@
  
      sc->session_ctx = ssl->ctx;
  
-@@ -1669,6 +1670,41 @@
+@@ -1202,6 +1203,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
+     }
+ 
+     c->ssl = sc;
++    c->ssl->handshake_msec = ngx_current_msec;
+ 
+     return NGX_OK;
+ }
+@@ -1379,6 +1381,7 @@ ngx_ssl_handshake_handler(ngx_event_t *ev)
+                    "SSL handshake handler: %d", ev->write);
+ 
+     if (ev->timedout) {
++        c->ssl->handshake_msec = 0;
+         c->ssl->handler(c);
+         return;
+     }
+@@ -1387,6 +1390,7 @@ ngx_ssl_handshake_handler(ngx_event_t *ev)
+         return;
+     }
+ 
++    c->ssl->handshake_msec = ngx_max(ngx_current_msec, c->ssl->handshake_msec) - c->ssl->handshake_msec;
+     c->ssl->handler(c);
+ }
+ 
+@@ -1712,6 +1716,41 @@ ngx_ssl_send_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
  
      for ( ;; ) {
  
@@ -50,7 +74,7 @@
          while (in && buf->last < buf->end && send < limit) {
              if (in->buf->last_buf || in->buf->flush) {
                  flush = 1;
-@@ -1770,6 +1806,9 @@
+@@ -1813,6 +1852,9 @@ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
  
      if (n > 0) {
  
@@ -60,10 +84,36 @@
          if (c->ssl->saved_read_handler) {
  
              c->read->handler = c->ssl->saved_read_handler;
+@@ -1895,6 +1937,8 @@ ngx_ssl_free_buffer(ngx_connection_t *c)
+             c->ssl->buf->start = NULL;
+         }
+     }
++
++    c->ssl->handshake_msec = 0;
+ }
+ 
+ 
+@@ -4131,6 +4175,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ }
+ 
+ 
++ngx_int_t
++ngx_ssl_get_handshake_time(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
++{
++    s->data = ngx_pnalloc(pool, NGX_TIME_T_LEN + 4);
++    s->len  = ngx_sprintf(s->data, "%T.%03M", c->ssl->handshake_msec / 1000, c->ssl->handshake_msec % 1000) - s->data;
++
++    return NGX_OK;
++}
++
++
+ static time_t
+ ngx_ssl_parse_time(
+ #if OPENSSL_VERSION_NUMBER > 0x10100000L
 --- src/event/ngx_event_openssl.h
 +++ src/event/ngx_event_openssl.h
-@@ -54,10 +54,19 @@
- #define ngx_ssl_conn_t          SSL
+@@ -59,10 +59,19 @@
+ #endif
  
  
 +typedef struct {
@@ -82,7 +132,7 @@
  };
  
  
-@@ -80,6 +89,10 @@
+@@ -85,6 +94,12 @@ struct ngx_ssl_connection_s {
      unsigned                    no_wait_shutdown:1;
      unsigned                    no_send_shutdown:1;
      unsigned                    handshake_buffer_set:1;
@@ -90,10 +140,12 @@
 +    ngx_ssl_dyn_rec_t           dyn_rec;
 +    ngx_msec_t                  dyn_rec_last_write;
 +    ngx_uint_t                  dyn_rec_records_sent;
++
++    ngx_msec_t                  handshake_msec;
  };
  
  
-@@ -89,7 +102,7 @@
+@@ -94,7 +109,7 @@ struct ngx_ssl_connection_s {
  #define NGX_SSL_DFLT_BUILTIN_SCACHE  -5
  
  
@@ -102,9 +154,18 @@
  
  typedef struct ngx_ssl_sess_id_s  ngx_ssl_sess_id_t;
  
+@@ -234,6 +249,8 @@ ngx_int_t ngx_ssl_get_client_v_end(ngx_connection_t *c, ngx_pool_t *pool,
+     ngx_str_t *s);
+ ngx_int_t ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool,
+     ngx_str_t *s);
++ngx_int_t ngx_ssl_get_handshake_time(ngx_connection_t *c, ngx_pool_t *pool,
++    ngx_str_t *s);
+ 
+ 
+ ngx_int_t ngx_ssl_handshake(ngx_connection_t *c);
 --- src/http/modules/ngx_http_ssl_module.c
 +++ src/http/modules/ngx_http_ssl_module.c
-@@ -233,6 +233,41 @@
+@@ -234,6 +234,41 @@ static ngx_command_t  ngx_http_ssl_commands[] = {
        offsetof(ngx_http_ssl_srv_conf_t, stapling_verify),
        NULL },
  
@@ -146,7 +207,17 @@
        ngx_null_command
  };
  
-@@ -533,6 +568,11 @@
+@@ -333,6 +368,9 @@ static ngx_http_variable_t  ngx_http_ssl_vars[] = {
+     { ngx_string("ssl_client_v_remain"), NULL, ngx_http_ssl_variable,
+       (uintptr_t) ngx_ssl_get_client_v_remain, NGX_HTTP_VAR_CHANGEABLE, 0 },
+ 
++    { ngx_string("ssl_handshake_time"), NULL, ngx_http_ssl_variable,
++      (uintptr_t) ngx_ssl_get_handshake_time, NGX_HTTP_VAR_CHANGEABLE, 0 },
++
+       ngx_http_null_variable
+ };
+ 
+@@ -559,6 +597,11 @@ ngx_http_ssl_create_srv_conf(ngx_conf_t *cf)
      sscf->session_ticket_keys = NGX_CONF_UNSET_PTR;
      sscf->stapling = NGX_CONF_UNSET;
      sscf->stapling_verify = NGX_CONF_UNSET;
@@ -158,7 +229,7 @@
  
      return sscf;
  }
-@@ -598,6 +638,20 @@
+@@ -624,6 +667,20 @@ ngx_http_ssl_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
      ngx_conf_merge_str_value(conf->stapling_responder,
                           prev->stapling_responder, "");
  
@@ -179,7 +250,7 @@
      conf->ssl.log = cf->log;
  
      if (conf->enable) {
-@@ -778,6 +832,28 @@
+@@ -804,6 +861,28 @@ ngx_http_ssl_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
  
      }
  
@@ -210,7 +281,7 @@
  
 --- src/http/modules/ngx_http_ssl_module.h
 +++ src/http/modules/ngx_http_ssl_module.h
-@@ -57,6 +57,12 @@
+@@ -57,6 +57,12 @@ typedef struct {
  
      u_char                         *file;
      ngx_uint_t                      line;
@@ -222,4 +293,16 @@
 +    ngx_uint_t                      dyn_rec_threshold;
  } ngx_http_ssl_srv_conf_t;
  
+ 
+--- src/stream/ngx_stream_ssl_module.c
++++ src/stream/ngx_stream_ssl_module.c
+@@ -277,6 +277,9 @@ static ngx_stream_variable_t  ngx_stream_ssl_vars[] = {
+     { ngx_string("ssl_client_v_remain"), NULL, ngx_stream_ssl_variable,
+       (uintptr_t) ngx_ssl_get_client_v_remain, NGX_STREAM_VAR_CHANGEABLE, 0 },
+ 
++    { ngx_string("ssl_handshake_time"), NULL, ngx_http_ssl_variable,
++      (uintptr_t) ngx_ssl_get_handshake_time, NGX_HTTP_VAR_CHANGEABLE, 0 },
++
+       ngx_stream_null_variable
+ };
  
