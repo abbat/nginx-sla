@@ -24,6 +24,15 @@ For assembling purposes nginx must be configured with an additional parameter:
 
 * [Debian, Ubuntu](http://software.opensuse.org/download.html?project=home:antonbatenev:nginx-sla&package=nginx-sla)
 
+Binary packages also contains:
+
+* Static linking OpenSSL (1.1.0f) and `nginx-openssl` utility;
+* [http_v2_module](https://nginx.org/ru/docs/http/ngx_http_v2_module.html) module;
+* [ngx_cache_purge](https://github.com/FRiCKLE/ngx_cache_purge.git) module;
+* [ngx_pagespeed](https://github.com/pagespeed/ngx_pagespeed.git) module (Debian 8+ / Ubuntu 14.04+);
+* [CloudFlare Dynamic TLS Records patch](https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency);
+* Embedded variable `$ssl_handshake_time` for TLS handshake time monitoring.
+
 ## Configuration
 
 ```

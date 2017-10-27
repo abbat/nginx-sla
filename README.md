@@ -24,6 +24,15 @@
 
 * [Debian, Ubuntu](http://software.opensuse.org/download.html?project=home:antonbatenev:nginx-sla&package=nginx-sla)
 
+Помимо `nginx` с модулем `nginx-sla` бинарные пакеты содержат в себе:
+
+* Статически слинкованную версию OpenSSL (1.1.0f) и соответствующий ей бинарный файл `nginx-openssl`;
+* Модуль [http_v2_module](https://nginx.org/ru/docs/http/ngx_http_v2_module.html);
+* Модуль [ngx_cache_purge](https://github.com/FRiCKLE/ngx_cache_purge.git);
+* Модуль [ngx_pagespeed](https://github.com/pagespeed/ngx_pagespeed.git) (Debian 8+ / Ubuntu 14.04+);
+* [CloudFlare Dynamic TLS Records patch](https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency);
+* Встроенную переменную `$ssl_handshake_time` для мониторинга времени установки TLS соединений.
+
 ## Конфигурация
 
 ```
