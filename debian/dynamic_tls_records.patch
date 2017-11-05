@@ -93,24 +93,7 @@
  }
  
  
-@@ -3535,7 +3579,16 @@ ngx_ssl_get_session_id(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
- ngx_int_t
- ngx_ssl_get_session_reused(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
- {
-+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-+    SSL_SESSION  *sess;
-+#endif
-     if (SSL_session_reused(c->ssl->connection)) {
-+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-+        sess = SSL_get0_session(c->ssl->connection);
-+        if (sess != NULL && SSL_SESSION_has_ticket(sess) == 1) {
-+            ngx_str_set(s, "t");
-+        } else
-+#endif
-         ngx_str_set(s, "r");
- 
-     } else {
-@@ -4131,6 +4184,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+@@ -4131,6 +4175,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
  }
  
  

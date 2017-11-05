@@ -31,8 +31,7 @@ Binary packages also contains:
 * [ngx_cache_purge](https://github.com/FRiCKLE/ngx_cache_purge.git) module;
 * [ngx_pagespeed](https://github.com/pagespeed/ngx_pagespeed.git) module (Debian 8+ / Ubuntu 14.04+);
 * [CloudFlare Dynamic TLS Records patch](https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency);
-* Embedded variable `$ssl_handshake_time` for TLS handshake time monitoring;
-* Embedded variable `$ssl_session_reused` returns `t` if an SSL session has associated TLS Session Ticket.
+* Embedded variable `$ssl_handshake_time` for TLS handshake time monitoring.
 
 ## Configuration
 
