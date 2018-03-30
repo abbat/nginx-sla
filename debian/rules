@@ -10,7 +10,7 @@ include /usr/share/dpkg/buildflags.mk
 CODENAME = $(shell /usr/bin/lsb_release --codename --short)
 ARCH     = $(shell uname -m | sed -e 's|x86_64|x64|g' | sed -e 's|i[0-9]86|ia32|g')
 
-OPENSSL_NGX_EXTRA_FLAGS = no-shared enable-unit-test enable-rfc3779 enable-cms no-ssl3 no-ssl3-method no-camellia no-chacha no-idea no-poly1305 no-mdc2 no-rc5 no-seed no-psk no-srp no-gost no-zlib no-dso
+OPENSSL_NGX_EXTRA_FLAGS = no-shared enable-unit-test enable-rfc3779 enable-cms no-ssl3 no-ssl3-method no-camellia no-idea no-mdc2 no-rc5 no-seed no-psk no-srp no-gost no-zlib no-dso
 ifeq ($(ARCH), x64)
     OPENSSL_NGX_EXTRA_FLAGS += enable-ec_nistp_64_gcc_128
 endif
