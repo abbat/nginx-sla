@@ -11,7 +11,7 @@
 set -e
 
 NGINX_VERSION="1.14.0"
-OPENSSL_VERSION="1.1.0h"
+OPENSSL_VERSION="1.1.0i"
 
 PACKAGE_DATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
 PACKAGE_VERSION_DATE=$(date "+%Y%m%d%H%M")
@@ -63,6 +63,13 @@ mv "build/nginx-sla/openssl-${OPENSSL_VERSION}" "build/nginx-sla/openssl"
 
 git clone "https://github.com/FRiCKLE/ngx_cache_purge.git" "build/nginx-sla/ngx_cache_purge"
 rm -rf "build/nginx-sla/ngx_cache_purge/.git"
+
+#
+# ngx_brotli
+#
+
+git clone --recursive "https://github.com/google/ngx_brotli.git" "build/nginx-sla/ngx_brotli"
+rm -rf "build/nginx-sla/ngx_brotli/.git"
 
 #
 # ngx_pagespeed

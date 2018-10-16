@@ -53,6 +53,7 @@ CONFIGURE_OPTS = \
     --with-http_xslt_module                          \
     --with-http_secure_link_module                   \
     --add-module=ngx_cache_purge                     \
+    --add-module=ngx_brotli                          \
     --add-module=nginx-sla                           \
     $(PAGE_SPEED_NGX_EXTRA_FLAGS)
 

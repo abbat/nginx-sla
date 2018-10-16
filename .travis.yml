@@ -9,7 +9,7 @@ branches:
 
 env:
   global:
-    - OPENSSL_VERSION=1.1.0h
+    - OPENSSL_VERSION=1.1.0i
   matrix:
     - NGINX_VERSION=1.14.0
     - NGINX_VERSION=1.14.0 NGINX_DYNAMIC=YES
@@ -29,6 +29,7 @@ before_script:
   - mv nginx-sla nginx-${NGINX_VERSION}
   - mv openssl-${OPENSSL_VERSION} nginx-${NGINX_VERSION}/openssl
   - git clone https://github.com/FRiCKLE/ngx_cache_purge.git nginx-${NGINX_VERSION}/ngx_cache_purge
+  - git clone --recursive https://github.com/google/ngx_brotli.git nginx-${NGINX_VERSION}/ngx_brotli
   - git clone -b latest-beta https://github.com/pagespeed/ngx_pagespeed.git nginx-${NGINX_VERSION}/ngx_pagespeed
   - PSOL_URL=$(nginx-${NGINX_VERSION}/ngx_pagespeed/scripts/format_binary_url.sh nginx-${NGINX_VERSION}/ngx_pagespeed/PSOL_BINARY_URL)
   - wget -O - "${PSOL_URL}" | tar -xzf - -C nginx-${NGINX_VERSION}/ngx_pagespeed
@@ -73,6 +74,7 @@ script:
     --with-http_xslt_module                          \
     --with-http_secure_link_module                   \
     ${NGINX_ADD_MODULE}=ngx_cache_purge              \
+    ${NGINX_ADD_MODULE}=ngx_brotli                   \
     ${NGINX_ADD_MODULE}=ngx_pagespeed                \
     ${NGINX_ADD_MODULE}=nginx-sla                    \
     ${PAGE_SPEED_NGX_EXTRA_FLAGS}
