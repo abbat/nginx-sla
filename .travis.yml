@@ -29,7 +29,7 @@ before_script:
   - mv nginx-sla nginx-${NGINX_VERSION}
   - mv openssl-${OPENSSL_VERSION} nginx-${NGINX_VERSION}/openssl
   - git clone https://github.com/FRiCKLE/ngx_cache_purge.git nginx-${NGINX_VERSION}/ngx_cache_purge
-  - git clone --recursive https://github.com/google/ngx_brotli.git nginx-${NGINX_VERSION}/ngx_brotli
+  - git clone --recursive https://github.com/eustas/ngx_brotli.git nginx-${NGINX_VERSION}/ngx_brotli
   - git clone -b latest-beta https://github.com/pagespeed/ngx_pagespeed.git nginx-${NGINX_VERSION}/ngx_pagespeed
   - PSOL_URL=$(nginx-${NGINX_VERSION}/ngx_pagespeed/scripts/format_binary_url.sh nginx-${NGINX_VERSION}/ngx_pagespeed/PSOL_BINARY_URL)
   - wget -O - "${PSOL_URL}" | tar -xzf - -C nginx-${NGINX_VERSION}/ngx_pagespeed

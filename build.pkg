@@ -68,7 +68,7 @@ rm -rf "build/nginx-sla/ngx_cache_purge/.git"
 # ngx_brotli
 #
 
-git clone --recursive "https://github.com/google/ngx_brotli.git" "build/nginx-sla/ngx_brotli"
+git clone --recursive "https://github.com/eustas/ngx_brotli.git" "build/nginx-sla/ngx_brotli"
 rm -rf "build/nginx-sla/ngx_brotli/.git"
 
 #
