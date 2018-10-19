@@ -38,6 +38,7 @@ before_script:
 script:
   - cd nginx-${NGINX_VERSION}
   - patch -p0 < nginx-sla/debian/dynamic_tls_records.patch
+  - patch -p0 < nginx-sla/debian/openssl_tls13_cipher_order.patch
   - test -z "${NGINX_DYNAMIC}" && NGINX_ADD_MODULE=--add-module || NGINX_ADD_MODULE=--add-dynamic-module
   - OPENSSL_NGX_EXTRA_FLAGS="no-shared enable-unit-test enable-rfc3779 enable-cms no-ssl3 no-ssl3-method no-camellia no-chacha no-idea no-poly1305 no-mdc2 no-rc5 no-seed no-psk no-srp no-gost no-zlib no-dso"
   - PAGE_SPEED_NGX_EXTRA_FLAGS="--with-cc=/usr/lib/gcc-mozilla/bin/gcc --with-ld-opt=-static-libstdc++"
