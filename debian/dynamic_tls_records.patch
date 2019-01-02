@@ -1,6 +1,6 @@
 --- src/event/ngx_event_openssl.c
 +++ src/event/ngx_event_openssl.c
-@@ -1267,6 +1267,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
+@@ -1272,6 +1272,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
  
      sc->buffer = ((flags & NGX_SSL_BUFFER) != 0);
      sc->buffer_size = ssl->buffer_size;
@@ -8,7 +8,7 @@
  
      sc->session_ctx = ssl->ctx;
  
-@@ -1305,6 +1306,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
+@@ -1310,6 +1311,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
      }
  
      c->ssl = sc;
@@ -16,7 +16,7 @@
  
      return NGX_OK;
  }
-@@ -1383,6 +1385,8 @@ ngx_ssl_handshake(ngx_connection_t *c)
+@@ -1388,6 +1390,8 @@ ngx_ssl_handshake(ngx_connection_t *c)
  
          c->ssl->handshaked = 1;
  
@@ -25,7 +25,7 @@
          c->recv = ngx_ssl_recv;
          c->send = ngx_ssl_write;
          c->recv_chain = ngx_ssl_recv_chain;
-@@ -1507,6 +1511,8 @@ ngx_ssl_try_early_data(ngx_connection_t *c)
+@@ -1512,6 +1516,8 @@ ngx_ssl_try_early_data(ngx_connection_t *c)
          c->ssl->handshaked = 1;
          c->ssl->in_early = 1;
  
@@ -34,7 +34,7 @@
          c->recv = ngx_ssl_recv;
          c->send = ngx_ssl_write;
          c->recv_chain = ngx_ssl_recv_chain;
-@@ -1639,6 +1645,7 @@ ngx_ssl_handshake_handler(ngx_event_t *ev)
+@@ -1644,6 +1650,7 @@ ngx_ssl_handshake_handler(ngx_event_t *ev)
                     "SSL handshake handler: %d", ev->write);
  
      if (ev->timedout) {
@@ -42,7 +42,7 @@
          c->ssl->handler(c);
          return;
      }
-@@ -2115,6 +2122,41 @@ ngx_ssl_send_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
+@@ -2124,6 +2131,41 @@ ngx_ssl_send_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
  
      for ( ;; ) {
  
@@ -84,7 +84,7 @@
          while (in && buf->last < buf->end && send < limit) {
              if (in->buf->last_buf || in->buf->flush) {
                  flush = 1;
-@@ -2222,6 +2264,9 @@ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
+@@ -2231,6 +2273,9 @@ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
  
      if (n > 0) {
  
@@ -94,7 +94,7 @@
          if (c->ssl->saved_read_handler) {
  
              c->read->handler = c->ssl->saved_read_handler;
-@@ -2321,6 +2366,9 @@ ngx_ssl_write_early(ngx_connection_t *c, u_char *data, size_t size)
+@@ -2330,6 +2375,9 @@ ngx_ssl_write_early(ngx_connection_t *c, u_char *data, size_t size)
  
      if (n > 0) {
  
@@ -104,7 +104,7 @@
          if (c->ssl->saved_read_handler) {
  
              c->read->handler = c->ssl->saved_read_handler;
-@@ -2421,6 +2469,8 @@ ngx_ssl_free_buffer(ngx_connection_t *c)
+@@ -2446,6 +2494,8 @@ ngx_ssl_free_buffer(ngx_connection_t *c)
              c->ssl->buf->start = NULL;
          }
      }
@@ -113,7 +113,7 @@
  }
  
  
-@@ -4705,6 +4755,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+@@ -4730,6 +4780,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
  }
  
  
@@ -152,10 +152,10 @@
  };
  
  
-@@ -98,6 +107,12 @@ struct ngx_ssl_connection_s {
-     unsigned                    try_early_data:1;
+@@ -99,6 +108,12 @@ struct ngx_ssl_connection_s {
      unsigned                    in_early:1;
      unsigned                    early_preread:1;
+     unsigned                    write_blocked:1;
 +
 +    ngx_ssl_dyn_rec_t           dyn_rec;
 +    ngx_msec_t                  dyn_rec_last_write;
@@ -165,7 +165,7 @@
  };
  
  
-@@ -107,7 +122,7 @@ struct ngx_ssl_connection_s {
+@@ -108,7 +123,7 @@ struct ngx_ssl_connection_s {
  #define NGX_SSL_DFLT_BUILTIN_SCACHE  -5
  
  
@@ -174,7 +174,7 @@
  
  typedef struct ngx_ssl_sess_id_s  ngx_ssl_sess_id_t;
  
-@@ -254,6 +269,8 @@ ngx_int_t ngx_ssl_get_client_v_end(ngx_connection_t *c, ngx_pool_t *pool,
+@@ -255,6 +270,8 @@ ngx_int_t ngx_ssl_get_client_v_end(ngx_connection_t *c, ngx_pool_t *pool,
      ngx_str_t *s);
  ngx_int_t ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool,
      ngx_str_t *s);
