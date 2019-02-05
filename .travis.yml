@@ -70,6 +70,7 @@ script:
     --with-http_dav_module                           \
     --with-http_geoip_module                         \
     --with-http_gzip_static_module                   \
+    --with-http_gunzip_module                        \
     --with-http_image_filter_module                  \
     --with-http_sub_module                           \
     --with-http_xslt_module                          \
