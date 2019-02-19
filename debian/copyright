@@ -20,10 +20,6 @@ Files: ngx_brotli/*
 Copyright: 2015 Google Inc
 License: BSD-2-clause
 
-Files: ngx_pagespeed/*
-Copyright: 2010 Google Inc
-License: Apache-2.0
-
 Files: nginx-sla/*
 Copyright: 2012, Anton Batenev <antonbatenev@yandex.ru>
            2012, Fernando Systems Ltd
