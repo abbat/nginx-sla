@@ -1,6 +1,18 @@
 --- src/event/ngx_event_openssl.c
 +++ src/event/ngx_event_openssl.c
-@@ -1272,6 +1272,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
+@@ -670,7 +670,11 @@ ngx_ssl_ciphers(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *ciphers,
+     }
+ 
+     if (prefer_server_ciphers) {
++#ifdef SSL_OP_PRIORITIZE_CHACHA
++        SSL_CTX_set_options(ssl->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE | SSL_OP_PRIORITIZE_CHACHA);
++#else
+         SSL_CTX_set_options(ssl->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
++#endif
+     }
+ 
+ #if (OPENSSL_VERSION_NUMBER < 0x10100001L && !defined LIBRESSL_VERSION_NUMBER)
+@@ -1272,6 +1276,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
  
      sc->buffer = ((flags & NGX_SSL_BUFFER) != 0);
      sc->buffer_size = ssl->buffer_size;
@@ -8,7 +20,7 @@
  
      sc->session_ctx = ssl->ctx;
  
-@@ -1310,6 +1311,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
+@@ -1310,6 +1315,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl, ngx_connection_t *c, ngx_uint_t flags)
      }
  
      c->ssl = sc;
@@ -16,7 +28,7 @@
  
      return NGX_OK;
  }
-@@ -1388,6 +1390,8 @@ ngx_ssl_handshake(ngx_connection_t *c)
+@@ -1388,6 +1394,8 @@ ngx_ssl_handshake(ngx_connection_t *c)
  
          c->ssl->handshaked = 1;
  
@@ -25,7 +37,7 @@
          c->recv = ngx_ssl_recv;
          c->send = ngx_ssl_write;
          c->recv_chain = ngx_ssl_recv_chain;
-@@ -1512,6 +1516,8 @@ ngx_ssl_try_early_data(ngx_connection_t *c)
+@@ -1512,6 +1520,8 @@ ngx_ssl_try_early_data(ngx_connection_t *c)
          c->ssl->handshaked = 1;
          c->ssl->in_early = 1;
  
@@ -34,7 +46,7 @@
          c->recv = ngx_ssl_recv;
          c->send = ngx_ssl_write;
          c->recv_chain = ngx_ssl_recv_chain;
-@@ -1644,6 +1650,7 @@ ngx_ssl_handshake_handler(ngx_event_t *ev)
+@@ -1644,6 +1654,7 @@ ngx_ssl_handshake_handler(ngx_event_t *ev)
                     "SSL handshake handler: %d", ev->write);
  
      if (ev->timedout) {
@@ -42,7 +54,7 @@
          c->ssl->handler(c);
          return;
      }
-@@ -2124,6 +2131,41 @@ ngx_ssl_send_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
+@@ -2124,6 +2135,41 @@ ngx_ssl_send_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit)
  
      for ( ;; ) {
  
@@ -84,7 +96,7 @@
          while (in && buf->last < buf->end && send < limit) {
              if (in->buf->last_buf || in->buf->flush) {
                  flush = 1;
-@@ -2231,6 +2273,9 @@ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
+@@ -2231,6 +2277,9 @@ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
  
      if (n > 0) {
  
@@ -94,7 +106,7 @@
          if (c->ssl->saved_read_handler) {
  
              c->read->handler = c->ssl->saved_read_handler;
-@@ -2330,6 +2375,9 @@ ngx_ssl_write_early(ngx_connection_t *c, u_char *data, size_t size)
+@@ -2330,6 +2379,9 @@ ngx_ssl_write_early(ngx_connection_t *c, u_char *data, size_t size)
  
      if (n > 0) {
  
@@ -104,7 +116,7 @@
          if (c->ssl->saved_read_handler) {
  
              c->read->handler = c->ssl->saved_read_handler;
-@@ -2446,6 +2494,8 @@ ngx_ssl_free_buffer(ngx_connection_t *c)
+@@ -2446,6 +2498,8 @@ ngx_ssl_free_buffer(ngx_connection_t *c)
              c->ssl->buf->start = NULL;
          }
      }
@@ -113,7 +125,7 @@
  }
  
  
-@@ -4730,6 +4780,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+@@ -4730,6 +4784,16 @@ ngx_ssl_get_client_v_remain(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
  }
  
  
