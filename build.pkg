@@ -10,8 +10,8 @@
 
 set -e
 
-NGINX_VERSION="1.15.8"
-OPENSSL_VERSION="1.1.1a"
+NGINX_VERSION="1.15.9"
+OPENSSL_VERSION="1.1.1b"
 
 PACKAGE_DATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
 PACKAGE_VERSION_DATE=$(date "+%Y%m%d%H%M")
