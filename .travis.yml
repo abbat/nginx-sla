@@ -16,7 +16,7 @@ env:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev libgeoip-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev gcc-mozilla wget tar sed
+  - sudo apt-get -y install -qq autotools-dev libexpat-dev libgd2-noxpm-dev liblua5.1-dev libmhash-dev libpam0g-dev libpcre3-dev libperl-dev libssl-dev libxslt1-dev zlib1g-dev gcc-mozilla wget tar sed
 
 install:
   - cd ..
@@ -64,7 +64,6 @@ script:
     --with-http_auth_request_module                  \
     --with-http_addition_module                      \
     --with-http_dav_module                           \
-    --with-http_geoip_module                         \
     --with-http_gzip_static_module                   \
     --with-http_gunzip_module                        \
     --with-http_image_filter_module                  \
