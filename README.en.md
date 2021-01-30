@@ -26,7 +26,7 @@ For assembling purposes nginx must be configured with an additional parameter:
 
 Binary packages also contains:
 
-* Static linking OpenSSL (1.1.1g) and `nginx-openssl` utility;
+* Static linking OpenSSL (1.1.1i) and `nginx-openssl` utility;
 * [http_v2_module](https://nginx.org/ru/docs/http/ngx_http_v2_module.html) module;
 * [ngx_cache_purge](https://github.com/FRiCKLE/ngx_cache_purge.git) module;
 * [ngx_brotli](https://github.com/eustas/ngx_brotli) module;
