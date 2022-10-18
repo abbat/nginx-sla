@@ -9,7 +9,7 @@ branches:
 
 env:
   global:
-    - OPENSSL_VERSION=1.1.1o
+    - OPENSSL_VERSION=1.1.1q
   matrix:
     - NGINX_VERSION=1.22.0
     - NGINX_VERSION=1.22.0 NGINX_DYNAMIC=YES
