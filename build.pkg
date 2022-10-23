@@ -10,7 +10,7 @@
 
 set -e
 
-NGINX_VERSION="1.22.0"
+NGINX_VERSION="1.22.1"
 OPENSSL_VERSION="1.1.1q"
 
 PACKAGE_DATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
@@ -22,75 +22,78 @@ PACKAGE_VERSION="${NGINX_VERSION}~${PACKAGE_VERSION_DATE}~${PACKAGE_REVISION_SHO
 
 BUILD_DIR="build"
 
-NGINX_DIR="nginx-${NGINX_VERSION}"
-NGINX_ARC="${NGINX_DIR}.tar.gz"
+NGINX_ARC="nginx-${NGINX_VERSION}.tar.gz"
+NGINX_ARC_DIR="${BUILD_DIR}/nginx-${NGINX_VERSION}"
+NGINX_DIR="${BUILD_DIR}/nginx-sla"
 
 OPENSSL_ARC="openssl-${OPENSSL_VERSION}.tar.gz"
 
-if [ ! -d "build" ]; then
-	mkdir build
+if [ ! -d "${BUILD_DIR}" ]; then
+	mkdir "${BUILD_DIR}"
 fi
 
-if [ ! -f "build/${NGINX_ARC}" ]; then
-	wget "http://nginx.org/download/${NGINX_ARC}" -O "build/${NGINX_ARC}"
+if [ ! -f "${BUILD_DIR}/${NGINX_ARC}" ]; then
+	wget "http://nginx.org/download/${NGINX_ARC}" -O "${BUILD_DIR}/${NGINX_ARC}"
 fi
 
-if [ ! -f "build/${OPENSSL_ARC}" ]; then
-	wget "https://www.openssl.org/source/${OPENSSL_ARC}" -O "build/${OPENSSL_ARC}"
+if [ ! -f "${BUILD_DIR}/${OPENSSL_ARC}" ]; then
+	wget "https://www.openssl.org/source/${OPENSSL_ARC}" -O "${BUILD_DIR}/${OPENSSL_ARC}"
 fi
 
-if [ -d "build/${NGINX_DIR}" ]; then
-	rm -rf "build/${NGINX_DIR}"
+if [ -d "${NGINX_ARC_DIR}" ]; then
+	rm -rf "${NGINX_ARC_DIR}"
 fi
 
-if [ -d "build/nginx-sla" ]; then
-	rm -rf "build/nginx-sla"
+if [ -d "${NGINX_DIR}" ]; then
+	rm -rf "${NGINX_DIR}"
 fi
 
-tar -xf "build/${NGINX_ARC}" -C "build"
-mv "build/${NGINX_DIR}" "build/nginx-sla"
+tar -xf "${BUILD_DIR}/${NGINX_ARC}" -C "${BUILD_DIR}"
+mv "${NGINX_ARC_DIR}" "${NGINX_DIR}"
 
 #
 # OpenSSL
 #
 
-tar -xf "build/${OPENSSL_ARC}" -C "build/nginx-sla"
-mv "build/nginx-sla/openssl-${OPENSSL_VERSION}" "build/nginx-sla/openssl"
+tar -xf "${BUILD_DIR}/${OPENSSL_ARC}" -C "${NGINX_DIR}"
+mv "${NGINX_DIR}/openssl-${OPENSSL_VERSION}" "${NGINX_DIR}/openssl"
 
 #
 # ngx_cache_purge
 #
 
-git clone "https://github.com/FRiCKLE/ngx_cache_purge.git" "build/nginx-sla/ngx_cache_purge"
-rm -rf "build/nginx-sla/ngx_cache_purge/.git"
+NGX_CACHE_PURGE_DIR="${NGINX_DIR}/ngx_cache_purge"
+git clone "https://github.com/FRiCKLE/ngx_cache_purge.git" "${NGX_CACHE_PURGE_DIR}"
+rm -rf "${NGX_CACHE_PURGE_DIR}/.git"
 
 #
 # ngx_brotli
 #
 
-git clone --recursive "https://github.com/eustas/ngx_brotli.git" "build/nginx-sla/ngx_brotli"
-rm -rf "build/nginx-sla/ngx_brotli/.git"
+NGX_BROTLI_DIR="${NGINX_DIR}/ngx_brotli"
+git clone --recursive "https://github.com/eustas/ngx_brotli.git" "${NGX_BROTLI_DIR}"
+rm -rf "${NGX_BROTLI_DIR}/.git"
 
 #
 # nginx-sla
 #
 
-mkdir -p "build/nginx-sla/nginx-sla"
+mkdir -p "${NGINX_DIR}/nginx-sla"
 
-cp config         "build/nginx-sla/nginx-sla"
-cp ngx_http_sla.c "build/nginx-sla/nginx-sla"
-cp README.en.md   "build/nginx-sla/nginx-sla"
+cp config         "${NGINX_DIR}/nginx-sla"
+cp ngx_http_sla.c "${NGINX_DIR}/nginx-sla"
+cp README.en.md   "${NGINX_DIR}/nginx-sla"
 
 #
 # build source package
 #
 
-cp -r debian "build/nginx-sla"
+cp -r debian "${NGINX_DIR}"
 
-sed -i -e "s/%DATE%/${PACKAGE_DATE}/g"                             "build/nginx-sla/debian/changelog"
-sed -i -e "s/%PACKAGE_VERSION%/${PACKAGE_VERSION}/g"               "build/nginx-sla/debian/changelog"
-sed -i -e "s/%PACKAGE_REVISION_SHORT%/${PACKAGE_REVISION_SHORT}/g" "build/nginx-sla/debian/changelog"
+sed -i -e "s/%DATE%/${PACKAGE_DATE}/g"                             "${NGINX_DIR}/debian/changelog"
+sed -i -e "s/%PACKAGE_VERSION%/${PACKAGE_VERSION}/g"               "${NGINX_DIR}/debian/changelog"
+sed -i -e "s/%PACKAGE_REVISION_SHORT%/${PACKAGE_REVISION_SHORT}/g" "${NGINX_DIR}/debian/changelog"
 
-cd "build/nginx-sla"
+cd "${NGINX_DIR}"
 
 debuild -S
