@@ -24,7 +24,7 @@ BUILD_DIR="build"
 
 NGINX_ARC="nginx-${NGINX_VERSION}.tar.gz"
 NGINX_ARC_DIR="${BUILD_DIR}/nginx-${NGINX_VERSION}"
-NGINX_DIR="${BUILD_DIR}/nginx-legacy-sla"
+NGINX_DIR="${BUILD_DIR}/nginx-sla-legacy"
 
 OPENSSL_ARC="openssl-${OPENSSL_VERSION}.tar.gz"
 

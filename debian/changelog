@@ -1,4 +1,4 @@
-nginx-legacy-sla (%PACKAGE_VERSION%) stable; urgency=low
+nginx-sla-legacy (%PACKAGE_VERSION%) stable; urgency=low
 
   * Upstream version (%PACKAGE_REVISION_SHORT%)
 

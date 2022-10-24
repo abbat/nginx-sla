@@ -1,3 +1,3 @@
-nginx-legacy-sla: missing-license-paragraph-in-dep5-copyright
-nginx-legacy-sla: missing-field-in-dep5-copyright
-nginx-legacy-sla: native-package-with-dash-version
+nginx-sla-legacy: missing-license-paragraph-in-dep5-copyright
+nginx-sla-legacy: missing-field-in-dep5-copyright
+nginx-sla-legacy: native-package-with-dash-version

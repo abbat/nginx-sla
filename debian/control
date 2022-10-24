@@ -1,4 +1,4 @@
-Source: nginx-legacy-sla
+Source: nginx-sla-legacy
 Section: httpd
 Priority: optional
 Maintainer: Anton Batenev <antonbatenev@yandex.ru>
@@ -19,11 +19,11 @@ Build-Depends: debhelper (>= 8.0.0), dpkg-dev (>= 1.16.1), lsb-release,
 Standards-Version: 3.9.4
 Homepage: http://nginx.net
 
-Package: nginx-legacy-sla
+Package: nginx-sla-legacy
 Depends: nginx-common, ${misc:Depends}, ${shlibs:Depends}
 Architecture: any
-Conflicts: nginx-light, nginx-full, nginx-extras, nginx-golden, nginx-sla, nginx-quic-sla
-Description: small, powerful, scalable web/proxy server with legacy TLSv1.0/1.1 support
+Conflicts: nginx-light, nginx-full, nginx-extras, nginx-golden, nginx-sla, nginx-sla-quic, nginx-sla-quic-legacy
+Description: Nginx with legacy TLSv1.0 / TLSv1.1 support
  Nginx ("engine X") is a high-performance web and reverse proxy server
  created by Igor Sysoev. It can be used both as a standalone web server
  and as a proxy to reduce the load on back-end HTTP or mail servers.
