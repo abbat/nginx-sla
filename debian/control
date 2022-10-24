@@ -22,8 +22,8 @@ Homepage: http://nginx.net
 Package: nginx-sla
 Depends: nginx-common, ${misc:Depends}, ${shlibs:Depends}
 Architecture: any
-Conflicts: nginx-light, nginx-full, nginx-extras, nginx-golden, nginx-quic-sla, nginx-legacy-sla
-Description: small, powerful, scalable web/proxy server
+Conflicts: nginx-light, nginx-full, nginx-extras, nginx-golden, nginx-sla-legacy, nginx-sla-quic, nginx-sla-quic-legacy
+Description: Nginx with OpenSSL 3.x support
  Nginx ("engine X") is a high-performance web and reverse proxy server
  created by Igor Sysoev. It can be used both as a standalone web server
  and as a proxy to reduce the load on back-end HTTP or mail servers.
