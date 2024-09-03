@@ -30,8 +30,6 @@ Binary packages also contains:
 * [http_v2_module](https://nginx.org/ru/docs/http/ngx_http_v2_module.html) module;
 * [ngx_cache_purge](https://github.com/FRiCKLE/ngx_cache_purge.git) module;
 * [ngx_brotli](https://github.com/eustas/ngx_brotli) module;
-* [CloudFlare Dynamic TLS Records patch](https://blog.cloudflare.com/optimizing-tls-over-tcp-to-reduce-latency);
-* Embedded variable `$ssl_handshake_time` for TLS handshake time monitoring.
 
 ## Configuration
 
