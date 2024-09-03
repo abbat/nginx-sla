@@ -52,7 +52,6 @@ CONFIGURE_OPTS = \
     --add-module=nginx-sla
 
 override_dh_auto_configure:
-	patch -p0 < debian/dynamic_tls_records.patch
 	./configure $(CONFIGURE_OPTS)
 
 override_dh_auto_install:
