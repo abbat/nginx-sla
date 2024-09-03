@@ -26,8 +26,8 @@ NGINX_ARC="nginx-${NGINX_VERSION}.tar.gz"
 NGINX_ARC_DIR="${BUILD_DIR}/nginx-${NGINX_VERSION}"
 NGINX_DIR="${BUILD_DIR}/nginx-sla-legacy"
 
-OPENSSL_VER="openssl-${OPENSSL_VERSION}"
-OPENSSL_ARC="${OPENSSL_VER}.tar.gz"
+OPENSSL_VER=$(echo "OpenSSL_${OPENSSL_VERSION}" | tr '.' '_')
+OPENSSL_ARC="openssl-${OPENSSL_VERSION}.tar.gz"
 
 if [ ! -d "${BUILD_DIR}" ]; then
 	mkdir "${BUILD_DIR}"
