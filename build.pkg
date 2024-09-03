@@ -10,8 +10,8 @@
 
 set -e
 
-NGINX_VERSION="1.24.0"
-OPENSSL_VERSION="1.1.1u"
+NGINX_VERSION="1.26.2"
+OPENSSL_VERSION="1.1.1w"
 
 PACKAGE_DATE=$(LC_ALL=C date "+%a, %d %b %Y %H:%M:%S %z")
 PACKAGE_VERSION_DATE=$(date "+%Y%m%d%H%M")
@@ -26,7 +26,8 @@ NGINX_ARC="nginx-${NGINX_VERSION}.tar.gz"
 NGINX_ARC_DIR="${BUILD_DIR}/nginx-${NGINX_VERSION}"
 NGINX_DIR="${BUILD_DIR}/nginx-sla-legacy"
 
-OPENSSL_ARC="openssl-${OPENSSL_VERSION}.tar.gz"
+OPENSSL_VER="openssl-${OPENSSL_VERSION}"
+OPENSSL_ARC="${OPENSSL_VER}.tar.gz"
 
 if [ ! -d "${BUILD_DIR}" ]; then
 	mkdir "${BUILD_DIR}"
@@ -37,7 +38,7 @@ if [ ! -f "${BUILD_DIR}/${NGINX_ARC}" ]; then
 fi
 
 if [ ! -f "${BUILD_DIR}/${OPENSSL_ARC}" ]; then
-	wget "https://www.openssl.org/source/${OPENSSL_ARC}" -O "${BUILD_DIR}/${OPENSSL_ARC}"
+	wget "https://github.com/openssl/openssl/releases/download/${OPENSSL_VER}/${OPENSSL_ARC}" -O "${BUILD_DIR}/${OPENSSL_ARC}"
 fi
 
 if [ -d "${NGINX_ARC_DIR}" ]; then

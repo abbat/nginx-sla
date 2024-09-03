@@ -26,7 +26,7 @@
 
 Помимо `nginx` с модулем `nginx-sla` бинарные пакеты содержат в себе:
 
-* Статически слинкованную версию OpenSSL (1.1.1u) и соответствующий ей бинарный файл `nginx-openssl`;
+* Статически слинкованную версию OpenSSL (1.1.1w) и соответствующий ей бинарный файл `nginx-openssl`;
 * Модуль [http_v2_module](https://nginx.org/ru/docs/http/ngx_http_v2_module.html);
 * Модуль [ngx_cache_purge](https://github.com/FRiCKLE/ngx_cache_purge.git);
 * Модуль [ngx_brotli](https://github.com/eustas/ngx_brotli);
