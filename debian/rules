@@ -33,6 +33,7 @@ CONFIGURE_OPTS = \
     --with-ld-opt="-L../openssl/build/lib"           \
     --with-compat                                    \
     --with-debug                                     \
+    --with-stream                                    \
     --with-pcre-jit                                  \
     --with-http_ssl_module                           \
     --with-http_v2_module                            \
